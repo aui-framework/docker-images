@@ -25,14 +25,18 @@ env:
 
 jobs:
   build:
-    name: Build Docker images
-    runs-on: ${{ matrix.os }}
+    name: Build Docker image
+    runs-on: ${{ matrix.os.name }}
     permissions:
       contents: read
       packages: write
     strategy:
       matrix:
-        os: [ubuntu-24.04, ubuntu-24.04-arm]
+        os:
+          - name: ubuntu-24.04
+            arch: amd64
+          - name: ubuntu-24.04-arm
+            arch: arm64v8
         image:
           - name: clang-20-conan-aui
             dockerfile: clang-20-conan-aui/Dockerfile
@@ -67,8 +71,7 @@ jobs:
           file: ${{ matrix.image.dockerfile }}
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/${{ matrix.image.name }}:latest
-          #  ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/${{ matrix.image.name }}:${{ runner.arch }}-latest
+            ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/${{ matrix.image.name }}:latest-${{ matrix.os.arch }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
