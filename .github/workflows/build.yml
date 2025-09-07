@@ -1,7 +1,6 @@
 name: Build
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
@@ -72,7 +71,7 @@ jobs:
           context: .
           file: ${{ matrix.image.dockerfile }}
           platforms: ${{ matrix.os.platform }}
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: |
             ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/${{ matrix.image.name }}:latest-${{ matrix.os.arch }}
           cache-from: type=gha
@@ -80,6 +79,7 @@ jobs:
           provenance: false
 
   manifest:
+    if: github.event_name != 'pull_request'
     name: Create and push manifest
     runs-on: ubuntu-24.04
     needs: build
