@@ -69,11 +69,14 @@ jobs:
         with:
           context: .
           file: ${{ matrix.image.dockerfile }}
+          platforms: ${{ matrix.os.platform }}
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/${{ matrix.image.name }}:latest-${{ matrix.os.arch }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            ARCH=${{ matrix.os.arch }}/
 
   manifest:
     name: Create and push manifest
