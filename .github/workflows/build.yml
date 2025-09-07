@@ -1,7 +1,6 @@
 name: Build
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
@@ -16,8 +15,8 @@ on:
       - ".gitignore"
 
 concurrency:
-  group: build
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 env:
   REGISTRY: ghcr.io
@@ -25,14 +24,20 @@ env:
 
 jobs:
   build:
-    name: Build Docker images
-    runs-on: ubuntu-latest
+    name: Build Docker image
+    runs-on: ${{ matrix.os.name }}
     permissions:
       contents: read
       packages: write
-
     strategy:
       matrix:
+        os:
+          - name: ubuntu-24.04
+            platform: linux/amd64
+            arch: amd64
+          - name: ubuntu-24.04-arm
+            platform: linux/arm64
+            arch: arm64
         image:
           - name: clang-20-conan-aui
             dockerfile: clang-20-conan-aui/Dockerfile
@@ -40,7 +45,6 @@ jobs:
             dockerfile: gcc-15-conan-aui/Dockerfile
           - name: ndk-28b-conan-aui
             dockerfile: NDK-28b-conan-aui/Dockerfile
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -66,8 +70,38 @@ jobs:
         with:
           context: .
           file: ${{ matrix.image.dockerfile }}
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/${{ matrix.image.name }}:latest
+          platforms: ${{ matrix.os.platform }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/${{ matrix.image.name }}:latest-${{ matrix.os.arch }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          provenance: false
+
+  manifest:
+    if: github.event_name != 'pull_request'
+    name: Create and push manifest
+    runs-on: ubuntu-24.04
+    needs: build
+    permissions:
+      packages: write
+    steps:
+      - name: Set lowercase repository owner
+        run: |
+          echo "REPOSITORY_OWNER_LC=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and push manifests
+        run: |
+          images="clang-20-conan-aui gcc-15-conan-aui ndk-28b-conan-aui"
+          for img in $images; do
+            docker buildx imagetools create -t ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:latest \
+              ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:latest-amd64 \
+              ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:latest-arm64
+          done
