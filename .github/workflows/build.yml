@@ -37,8 +37,8 @@ jobs:
             platform: linux/amd64
             arch: amd64
           - name: ubuntu-24.04-arm
-            platform: linux/arm64v8
-            arch: arm64v8
+            platform: linux/arm64
+            arch: arm64
         image:
           - name: clang-20-conan-aui
             dockerfile: clang-20-conan-aui/Dockerfile
@@ -102,6 +102,6 @@ jobs:
           for img in $images; do
             docker manifest create ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:latest \
               --amend ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:latest-amd64 \
-              --amend ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:latest-arm64v8
+              --amend ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:latest-arm64
             docker manifest push ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:latest
           done
