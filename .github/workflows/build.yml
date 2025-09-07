@@ -101,8 +101,7 @@ jobs:
         run: |
           images="clang-20-conan-aui gcc-15-conan-aui ndk-28b-conan-aui"
           for img in $images; do
-            docker manifest create ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:latest \
-              --amend ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:latest-amd64 \
-              --amend ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:latest-arm64
-            docker manifest push ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:latest
+            docker buildx imagetools create -t ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:latest \
+              ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:latest-amd64 \
+              ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:latest-arm64
           done
