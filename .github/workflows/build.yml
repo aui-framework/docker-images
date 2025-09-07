@@ -75,30 +75,30 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  #manifest:
-  #  name: Create and push manifest
-  #  runs-on: ubuntu-24.04
-  #  needs: build
-  #  permissions:
-  #    packages: write
-  #  steps:
-  #    - name: Set lowercase repository owner
-  #      run: |
-  #        echo "REPOSITORY_OWNER_LC=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-  #
-  #    - name: Log in to Container Registry
-  #      uses: docker/login-action@v3
-  #      with:
-  #        registry: ${{ env.REGISTRY }}
-  #        username: ${{ github.actor }}
-  #        password: ${{ secrets.GITHUB_TOKEN }}
-  #
-  #    - name: Create and push manifests
-  #      run: |
-  #        images="clang-20-conan-aui gcc-15-conan-aui ndk-28b-conan-aui"
-  #        for img in $images; do
-  #          docker manifest create ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:latest \
-  #            --amend ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:amd64-latest \
-  #            --amend ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:arm64-latest
-  #          docker manifest push ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:latest
-  #        done
+  manifest:
+    name: Create and push manifest
+    runs-on: ubuntu-24.04
+    needs: build
+    permissions:
+      packages: write
+    steps:
+      - name: Set lowercase repository owner
+        run: |
+          echo "REPOSITORY_OWNER_LC=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and push manifests
+        run: |
+          images="clang-20-conan-aui gcc-15-conan-aui ndk-28b-conan-aui"
+          for img in $images; do
+            docker manifest create ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:latest \
+              --amend ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:latest-amd64 \
+              --amend ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:latest-arm64v8
+            docker manifest push ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/$img:latest
+          done
