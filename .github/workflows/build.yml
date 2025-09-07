@@ -34,8 +34,10 @@ jobs:
       matrix:
         os:
           - name: ubuntu-24.04
+            platform: linux/amd64
             arch: amd64
           - name: ubuntu-24.04-arm
+            platform: linux/arm64v8
             arch: arm64v8
         image:
           - name: clang-20-conan-aui
@@ -69,14 +71,12 @@ jobs:
         with:
           context: .
           file: ${{ matrix.image.dockerfile }}
-          #platforms: ${{ matrix.os.platform }}
+          platforms: ${{ matrix.os.platform }}
           push: true
           tags: |
             ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER_LC }}/${{ matrix.image.name }}:latest-${{ matrix.os.arch }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: |
-            ARCH=${{ matrix.os.arch }}/
 
   manifest:
     name: Create and push manifest

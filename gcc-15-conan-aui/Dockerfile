@@ -1,5 +1,4 @@
-ARG ARCH=
-FROM ${ARCH}ubuntu:25.04
+FROM ubuntu:25.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
