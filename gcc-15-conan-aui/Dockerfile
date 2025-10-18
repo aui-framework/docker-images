@@ -78,6 +78,7 @@ RUN apt-get install -y --no-install-recommends \
     libfontconfig1-dev \
     libpulse-dev \
     libglew-dev \
+    libepoxy-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-15 100 && \
