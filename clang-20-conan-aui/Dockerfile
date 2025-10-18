@@ -72,7 +72,7 @@ RUN apt-get update && \
     libglib2.0-dev \
     libfontconfig1-dev \
     libpulse-dev \
-    libglew-dev \
+    libepoxy-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN wget https://apt.llvm.org/llvm.sh && \
